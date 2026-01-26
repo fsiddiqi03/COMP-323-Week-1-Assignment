@@ -184,9 +184,12 @@ class Game:
         panel = pygame.Rect(self.w - 132, 12, 120, 40)
         pygame.draw.rect(self.screen, COLORS.panel, panel, border_radius=10)
 
-        text = f"invincible"
+        text = f"invincible {5 - int(self.alive_time)}"
         surf = self.font.render(text, True, COLORS.text)
-        self.screen.blit(surf, (panel.x + 12, panel.y + 12))
+        # Center text horizontally and vertically within the panel
+        text_x = panel.x + (panel.width - surf.get_width()) / 2
+        text_y = panel.y + (panel.height - surf.get_height()) / 2
+        self.screen.blit(surf, (text_x, text_y))
 
     def _draw_playing(self) -> None:
         self._draw_hud()
