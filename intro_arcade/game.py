@@ -117,10 +117,20 @@ class Game:
 
         self.player.x += int(self.player_v.x * dt)
         self.player.y += int(self.player_v.y * dt)
-        self.player.clamp_ip(pygame.Rect(0, 60, self.w, self.h - 60))
+
+        # Bounds: Set the bounds of the playfield.
+        bounds = pygame.Rect(0, 60, self.w, self.h - 60)
+
+        # Check if player has hit bounds.
+        hit_left = self.player.left < bounds.left
+        hit_right = self.player.right > bounds.right
+        hit_top = self.player.top < bounds.top
+        hit_bottom = self.player.bottom > bounds.bottom
+        
+        self.player.clamp_ip(bounds)
+
 
         # Enemies: bounce around the playfield.
-        bounds = pygame.Rect(0, 60, self.w, self.h - 60)
         for i, r in enumerate(self.enemy_rects):
             v = self.enemy_vs[i]
             r.x += int(v.x * dt)
@@ -137,6 +147,14 @@ class Game:
             if r.bottom > bounds.bottom:
                 r.bottom = bounds.bottom
                 v.y *= -1
+
+        # Collision: player has hit bounds.
+        if hit_left or hit_right or hit_top or hit_bottom:
+            if self.score < 5:
+                self.score = 0
+            else:
+                self.score -= 5
+
 
         # Collision: player with coin.
         if self.player.colliderect(self.coin):
