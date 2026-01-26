@@ -71,6 +71,7 @@ class Game:
 
         self.coin = self._spawn_coin()
         self.special_coin = self._spawn_special_coin()
+        self.border_flash_time = 0.0
 
     def _spawn_coin(self) -> pygame.Rect:
         # Keep coin away from top HUD area.
@@ -129,6 +130,12 @@ class Game:
         
         self.player.clamp_ip(bounds)
 
+        # Collision: player has hit bounds.
+        if hit_left or hit_right or hit_top or hit_bottom:
+            self.score = 0 
+            self.border_flash_time = 1.5
+            
+
 
         # Enemies: bounce around the playfield.
         for i, r in enumerate(self.enemy_rects):
@@ -147,14 +154,6 @@ class Game:
             if r.bottom > bounds.bottom:
                 r.bottom = bounds.bottom
                 v.y *= -1
-
-        # Collision: player has hit bounds.
-        if hit_left or hit_right or hit_top or hit_bottom:
-            if self.score < 5:
-                self.score = 0
-            else:
-                self.score -= 5
-
 
         # Collision: player with coin.
         if self.player.colliderect(self.coin):
@@ -179,6 +178,9 @@ class Game:
             self.alive_time += dt
             if self.alive_time > 5.0:
                 self.player_state = "normal"
+        
+        # Time for Red Border Flash
+        self.border_flash_time -= dt
 
     def draw(self) -> None:
         self.screen.fill(COLORS.bg)
@@ -212,16 +214,24 @@ class Game:
     def _draw_playing(self) -> None:
         self._draw_hud()
 
+        if self.border_flash_time > 0:
+            border_rect = pygame.Rect(0, 60, self.w, self.h - 60)
+            pygame.draw.rect(self.screen, COLORS.enemy, border_rect, width=4)
+
         pygame.draw.rect(self.screen, COLORS.coin, self.coin, border_radius=7)
         for r in self.enemy_rects:
             pygame.draw.rect(self.screen, COLORS.enemy, r, border_radius=8)
-        pygame.draw.rect(self.screen, COLORS.player, self.player, border_radius=8)
+        
+        if self.player_state == "invincible":
+            pygame.draw.rect(self.screen, COLORS.coin, self.player, border_radius=8)
+        else:
+            pygame.draw.rect(self.screen, COLORS.player, self.player, border_radius=8)
         pygame.draw.rect(self.screen, COLORS.text, self.special_coin, border_radius=8)
 
-        if self.player_state == "invincible":
-            self._draw_invincible()
+        if self.player_state == "invincible": 
+            self._draw_invincible()   
 
-    def _draw_title(self) -> None:
+    def _draw_title(self) -> None: 
         title = self.big_font.render("Intro Arcade", True, COLORS.text)
         hint = self.font.render("Move with arrows/WASD.  Avoid red.  Collect gold.", True, COLORS.text)
         hint2 = self.font.render("Press Enter to start.  Esc to quit.", True, COLORS.text)
