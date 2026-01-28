@@ -64,14 +64,30 @@ class Game:
         self.enemy_rects: list[pygame.Rect] = []
         self.enemy_vs: list[pygame.Vector2] = []
         for _ in range(3):
+            self._spawn_enemy()
+
+        self.coin = self._spawn_coin()
+        self.special_coin = self._spawn_special_coin()
+        self.border_flash_time = 0.0
+    
+    def _spawn_enemy(self) -> None:
             r = pygame.Rect(random.randrange(40, self.w - 40), random.randrange(80, self.h - 40), 36, 36)
             v = pygame.Vector2(random.choice([-1, 1]) * 220, random.choice([-1, 1]) * 180)
             self.enemy_rects.append(r)
             self.enemy_vs.append(v)
 
-        self.coin = self._spawn_coin()
-        self.special_coin = self._spawn_special_coin()
-        self.border_flash_time = 0.0
+
+    def _update_enemy_count(self) -> None:
+        if self.score > 9: 
+            enemy_count = 6
+        else:
+            enemy_count = 3
+
+        current_enemy_count = len(self.enemy_rects)
+
+        while current_enemy_count < enemy_count:
+            self._spawn_enemy()
+            current_enemy_count = len(self.enemy_rects)
 
     def _spawn_coin(self) -> pygame.Rect:
         # Keep coin away from top HUD area.
@@ -131,7 +147,7 @@ class Game:
         self.player.clamp_ip(bounds)
 
         # Collision: player has hit bounds.
-        if hit_left or hit_right or hit_top or hit_bottom:
+        if (hit_left or hit_right or hit_top or hit_bottom) and self.player_state != "invincible":
             self.score = 0 
             self.border_flash_time = 1.5
             
@@ -159,6 +175,9 @@ class Game:
         if self.player.colliderect(self.coin):
             self.score += 1
             self.coin = self._spawn_coin()
+        
+        # Check to see if player is above 10 coins to spawn more enemies
+        self._update_enemy_count()
 
         # Collision: player with enemies.
         if self.player.collidelist(self.enemy_rects) != -1 and self.player_state != "invincible":
