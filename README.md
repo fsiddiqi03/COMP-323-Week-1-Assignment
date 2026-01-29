@@ -43,4 +43,4 @@ Writes `save.json` (high score only). Delete it to reset.
 ### New Hazard
 - If the player touches any edge of the playfield, their score resets to 0
 - Players must balance speed to collect coins and dodge enemies 
-- This teach players boundaries are not safe zones, the entire playfield requires attention, showing careless movement has consequences
+- This teaches players boundaries are not safe zones, the entire playfield requires attention, showing careless movement has consequences
