@@ -17,6 +17,7 @@ class Colors:
     player: tuple[int, int, int] = (136, 192, 208)
     enemy: tuple[int, int, int] = (191, 97, 106)
     coin: tuple[int, int, int] = (235, 203, 139)
+    special_coin: tuple[int, int, int] = (163, 190, 140) 
 
 
 COLORS = Colors()
@@ -69,6 +70,7 @@ class Game:
         self.coin = self._spawn_coin()
         self.special_coin = self._spawn_special_coin()
         self.border_flash_time = 0.0
+        self.invincible_time = 0.0 
     
     def _spawn_enemy(self) -> None:
             r = pygame.Rect(random.randrange(40, self.w - 40), random.randrange(80, self.h - 40), 36, 36)
@@ -190,12 +192,12 @@ class Game:
         if self.player.colliderect(self.special_coin):
             self.player_state = "invincible"
             self.special_coin = self._spawn_special_coin()
-            self.alive_time = 0.0
+            self.invincible_time = 0.0
 
         # Invincible state: player is invincible for 5 seconds.
         if self.player_state == "invincible":
-            self.alive_time += dt
-            if self.alive_time > 5.0:
+            self.invincible_time += dt
+            if self.invincible_time >= 5.0:
                 self.player_state = "normal"
         
         # Time for Red Border Flash
@@ -223,8 +225,8 @@ class Game:
         panel = pygame.Rect(self.w - 132, 12, 120, 40)
         pygame.draw.rect(self.screen, COLORS.panel, panel, border_radius=10)
 
-        text = f"invincible {5 - int(self.alive_time)}"
-        surf = self.font.render(text, True, COLORS.text)
+        text = f"invincible {5 - int(self.invincible_time)}"
+        surf = self.font.render(text, True, COLORS.special_coin)
         # Center text horizontally and vertically within the panel
         text_x = panel.x + (panel.width - surf.get_width()) / 2
         text_y = panel.y + (panel.height - surf.get_height()) / 2
@@ -245,19 +247,25 @@ class Game:
             pygame.draw.rect(self.screen, COLORS.coin, self.player, border_radius=8)
         else:
             pygame.draw.rect(self.screen, COLORS.player, self.player, border_radius=8)
-        pygame.draw.rect(self.screen, COLORS.text, self.special_coin, border_radius=8)
+        # Draw special coin with new color and diamond shape (rotated square)
+        cx, cy = self.special_coin.center
+        size = 12
+        diamond_points = [(cx, cy - size), (cx + size, cy), (cx, cy + size), (cx - size, cy)]
+        pygame.draw.polygon(self.screen, COLORS.special_coin, diamond_points)
 
         if self.player_state == "invincible": 
             self._draw_invincible()   
 
     def _draw_title(self) -> None: 
         title = self.big_font.render("Intro Arcade", True, COLORS.text)
-        hint = self.font.render("Move with arrows/WASD.  Avoid red.  Collect gold.", True, COLORS.text)
-        hint2 = self.font.render("Press Enter to start.  Esc to quit.", True, COLORS.text)
+        hint = self.font.render("Move with arrows/WASD.  Avoid red enemies.  Collect gold coins.", True, COLORS.text)
+        hint2 = self.font.render("Green diamond = 5s invincibility.  Hitting the border resets your score!", True, COLORS.special_coin)
+        hint3 = self.font.render("Press Enter to start.  Esc to quit.", True, COLORS.text)
 
-        self.screen.blit(title, (self.w / 2 - title.get_width() / 2, 190))
-        self.screen.blit(hint, (self.w / 2 - hint.get_width() / 2, 250))
-        self.screen.blit(hint2, (self.w / 2 - hint2.get_width() / 2, 280))
+        self.screen.blit(title, (self.w / 2 - title.get_width() / 2, 180))
+        self.screen.blit(hint, (self.w / 2 - hint.get_width() / 2, 240))
+        self.screen.blit(hint2, (self.w / 2 - hint2.get_width() / 2, 270))
+        self.screen.blit(hint3, (self.w / 2 - hint3.get_width() / 2, 300))
 
     def _draw_gameover(self) -> None:
         title = self.big_font.render("Game Over", True, COLORS.text)
