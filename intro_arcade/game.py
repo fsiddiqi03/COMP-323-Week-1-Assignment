@@ -91,6 +91,11 @@ class Game:
             self._spawn_enemy()
             current_enemy_count = len(self.enemy_rects)
 
+        while current_enemy_count > enemy_count:
+            self.enemy_rects.pop()
+            self.enemy_vs.pop()
+            current_enemy_count = len(self.enemy_rects)
+
     def _spawn_coin(self) -> pygame.Rect:
         # Keep coin away from top HUD area.
         return pygame.Rect(random.randrange(20, self.w - 20), random.randrange(90, self.h - 20), 18, 18)
@@ -244,7 +249,7 @@ class Game:
             pygame.draw.rect(self.screen, COLORS.enemy, r, border_radius=8)
         
         if self.player_state == "invincible":
-            pygame.draw.rect(self.screen, COLORS.coin, self.player, border_radius=8)
+            pygame.draw.rect(self.screen, COLORS.special_coin, self.player, border_radius=8)
         else:
             pygame.draw.rect(self.screen, COLORS.player, self.player, border_radius=8)
         # Draw special coin with new color and diamond shape (rotated square)
